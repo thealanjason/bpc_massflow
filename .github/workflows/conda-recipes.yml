@@ -1,0 +1,67 @@
+name: Conda recipes (locks + images)
+
+# One pipeline so a module's image is always built from its latest lock:
+#   1. update-recipes: regenerate per-platform locks (conda-only modules) or a
+#      micromamba Dockerfile (pip modules), then commit.
+#   2. build-images: from the freshly-updated tree, build & push each module's
+#      image to GHCR (:latest + :sha) for --containerized runs.
+# Chained in one run because a GITHUB_TOKEN push can't trigger a second workflow.
+# New modules (any dir with environment.yml) are picked up automatically;
+# lhs (Julia) has its own image workflow.
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - '**/environment.yml'
+      - '.github/scripts/update-locks.sh'
+      - '.github/templates/**'
+      - '.github/workflows/conda-recipes.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  packages: write
+
+jobs:
+  update-recipes:
+    runs-on: ubuntu-latest
+    outputs:
+      changed: ${{ steps.commit.outputs.changed }}
+      modules: ${{ steps.discover.outputs.modules }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: conda-incubator/setup-miniconda@v3
+        with:
+          miniforge-version: latest
+          auto-activate-base: true
+
+      - name: Install conda-lock
+        shell: bash -el {0}
+        run: conda install -y conda-lock
+
+      - name: Regenerate locks / Dockerfiles
+        shell: bash -el {0}
+        run: bash .github/scripts/update-locks.sh
+
+      - name: Discover modules
+        id: discover
+        run: |
+          mods=$(find . -mindepth 2 -maxdepth 2 -name environment.yml -printf '%h\n' \
+                 | sed 's|^\./||' | sort | jq -R . | jq -cs .)
+          echo "modules=$mods" >> "$GITHUB_OUTPUT"
+
+      - name: Commit and push
+        id: commit
+        run: |
+          git config user.name  "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add -A '**/lockfile/*.lock' '**/Dockerfile'
+          if git diff --staged --quiet; then
+            echo "changed=false" >> "$GITHUB_OUTPUT"
+          else
+            git commit -m "chore: update conda locks & Dockerfiles [skip ci]"
+            git push
+            echo "changed=true" >> "$GITHUB_OUTPUT"
+          fi
