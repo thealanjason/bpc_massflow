@@ -1,7 +1,7 @@
 library("RobustGaSP")
 
 
-dir_path <- box::file()
+dir_path <- dirname(sub("^--file=", "", grep("^--file=", commandArgs(FALSE), value = TRUE)))
 # Read command-line arguments
 args <- commandArgs(trailingOnly = TRUE)
 

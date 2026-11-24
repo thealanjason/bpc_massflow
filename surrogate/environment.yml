@@ -3,7 +3,6 @@ channels:
   - conda-forge
 dependencies:
   - r-robustgasp
-  - r-box
   - r-httr2
   - r-httpuv
   - r-jsonlite
