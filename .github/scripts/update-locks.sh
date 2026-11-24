@@ -22,7 +22,8 @@ for env in $(find . -mindepth 2 -maxdepth 2 -name environment.yml | sort); do
     mkdir -p "$m/lockfile"
     for p in $platforms; do
       conda-lock -f "$env" -p "$p" --kind explicit \
-        --filename-template "$m/lockfile/conda-{platform}.lock"
+        --filename-template "$m/lockfile/conda-{platform}.lock" \
+        || echo "[$m] no lock for $p (packages unavailable), skipped"
     done
   fi
 done
