@@ -8,3 +8,4 @@ dependencies:
   - r-httpuv
   - r-jsonlite
   - r-future
+  - pip
