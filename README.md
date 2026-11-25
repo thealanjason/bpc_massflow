@@ -80,16 +80,6 @@ conda activate showmehow
    `Project.toml`) changes on `main`, it re-locks, commits the result, and
    pushes each unit's image to GHCR (`:latest` and `:<sha>`).
 
-## Repository structure
-
-| Path | Contents |
-| --- | --- |
-| `main.nf` | The Nextflow workflow |
-| `nextflow.config` | Environment resolution and execution profiles |
-| `params.yml` | Parameter bounds and sample count |
-| `lhs/`, `forward_model/`, `surrogate/`, `mcmc/` | The computational units |
-| `.github/` | CI that locks the environments and builds the images |
-
 ## Contributing
 
 Contributions are welcome. See [CONTRIBUTING.md](CONTRIBUTING.md).
