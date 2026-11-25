@@ -4,7 +4,7 @@ channels:
 dependencies:
   - python=3.12
   - numpy
-  - arviz=0.20
+  - arviz=0.23
   - h5netcdf
   - pip
   - pip:
