@@ -1,4 +1,4 @@
-name: Conda recipes (locks + images)
+name: Lock and build
 
 # One pipeline so a module's image is always built from its latest lock:
 #   1. update-recipes: regenerate per-platform locks (conda-only modules) or a
@@ -17,7 +17,7 @@ on:
       - '**/Dockerfile'
       - '.github/scripts/update-locks.sh'
       - '.github/templates/**'
-      - '.github/workflows/conda-recipes.yml'
+      - '.github/workflows/lock-and-build.yml'
   workflow_dispatch:
 
 permissions:
