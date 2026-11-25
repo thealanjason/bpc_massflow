@@ -1,12 +1,17 @@
 library('coda')
 library('reticulate')
 
-np <- import("numpy")
+az <- import("arviz")
 
-samples <- np$load("mcmc_samples.npy")
+# Read the MCMC output (NetCDF InferenceData written by the mcmc unit)
+idata <- az$from_netcdf("mcmc_idata.nc")
+post <- idata$posterior$to_array()$values  # dims: (parameter, chain, draw)
 
-# Convert samples to R matrix
-samples <- as.matrix(samples)
+# Chained samples as (draw, chain, parameter)
+chained_samples <- aperm(post, c(3, 2, 1))
+
+# Flatten all chains into one (draw * chain, parameter) matrix
+samples <- matrix(chained_samples, ncol = dim(chained_samples)[3])
 
 # Convert to coda object
 mcmc_chain <- mcmc(samples)
@@ -16,16 +21,13 @@ summary(mcmc_chain)
 
 plot(mcmc_chain)
 
-chained_samples <- np$load("/content/chained_mcmc_samples.npy")
-
 dim(chained_samples)
 
 chained_mcmc_chain <- mcmc(chained_samples)
 
 # Reshape the array
-chain_length <- 5000
-num_chains <- 50
-num_parameters <- 2
+num_chains <- dim(chained_samples)[2]
+num_parameters <- dim(chained_samples)[3]
 
 # Reshape the array into a list of chains
 mcmc_chain_list <- vector(mode = "list", length = num_parameters)

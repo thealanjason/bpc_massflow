@@ -240,6 +240,5 @@ process MCMC {
         """
 
     output:
-    path "mcmc_trace.npy"
-    path "mcmc_full_chain.npy"
+    path "mcmc_idata.nc"
 }

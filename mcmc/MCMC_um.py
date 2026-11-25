@@ -1,5 +1,6 @@
 import numpy as np
 import emcee
+import arviz as az
 import umbridge
 import argparse
 
@@ -68,6 +69,8 @@ if __name__ == "__main__":
     model = umbridge.HTTPModel("http://localhost:4242", args.surrogate_model_name)
 
     trace, sampler, full_chain = compute_mcmc(log_posterior=log_posterior_Umax, data=data, model=model)
-    np.save("mcmc_trace.npy", trace)
-    np.save("mcmc_full_chain.npy", full_chain)
+    # Post-burn-in samples as ArviZ InferenceData (NetCDF), as in bpc_hemolysis
+    idata = az.from_emcee(sampler, var_names=["A", "B"], blob_names=None)
+    idata = idata.sel(draw=slice(500, None))  # drop burn-in (matches compute_mcmc)
+    idata.to_netcdf("mcmc_idata.nc")
 
