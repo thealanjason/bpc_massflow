@@ -1,12 +1,12 @@
 # Bayesian Inverse Parameter Calibration for Mass Flow Models
 
-This computational study was developed using the
-[SHOWME.how](https://mbd-rwth.github.io/showmehow/) approach.
-
 In this computational study, we calibrate the parameters of a Mass Point Model
 (MPM) for mass flows against observed data using Markov chain Monte Carlo (MCMC).
 Since the MPM is expensive to evaluate, a Gaussian-process surrogate is trained on
 a set of model runs and used in place of the model during calibration.
+
+This computational study was developed using the
+[SHOWME.how](https://mbd-rwth.github.io/showmehow/) approach.
 
 ## Components of the study
 
@@ -55,18 +55,21 @@ conda activate showmehow
    nextflow run main.nf -params-file params.yml -profile cluster
    ```
 
+   `-profile` only selects the container engine. Which environments the units use is
+   set separately (see below).
+
 3. **Reproducible environments.** Each unit declares its environment in `main.nf`;
    how it is resolved is set in `nextflow.config`. Each run picks one mode:
 
    | Mode | Flag | What a unit uses |
    | --- | --- | --- |
    | Locked (default) | — | committed `<unit>/lockfile/conda-<platform>.lock` |
-   | Unlocked | `--useLockFiles false` | solve `<unit>/environment.yml` at runtime |
    | Containerized | `--containerized` | the unit's image from GHCR, no conda |
 
    ```
    nextflow run main.nf -params-file params.yml                 # locked
    nextflow run main.nf -params-file params.yml --containerized # images from GHCR
+   nextflow run main.nf -params-file params.yml -profile cluster --containerized # images via Apptainer, no conda needed
    ```
    - `--lockPlatform` is **auto-detected** from the host
      (`linux-64` | `linux-aarch64` | `osx-64` | `osx-arm64` | `win-64`); override if needed.
@@ -74,11 +77,6 @@ conda activate showmehow
      `environment.yml`.
    - `--condaEngine` is `micromamba` (default), `conda`, or `mamba`.
    - `lhs` always runs from its image.
-
-   The lock files and images are kept up to date by GitHub Actions
-   (`.github/workflows/lock-and-build.yml`). When a unit's `environment.yml` (or
-   `Project.toml`) changes on `main`, it re-locks, commits the result, and
-   pushes each unit's image to GHCR (`:latest` and `:<sha>`).
 
 ## Contributing
 
