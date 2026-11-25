@@ -31,10 +31,6 @@ a set of model runs and used in place of the model during calibration.
 
 > **Note for Windows users:** Nextflow runs on Windows [only through WSL2](https://docs.seqera.io/nextflow/install). Install the Linux version of your package manager inside [WSL2](https://learn.microsoft.com/en-us/windows/wsl/install) (e.g. Ubuntu). See how to [use Docker with WSL 2](https://docs.docker.com/desktop/features/wsl/).
 
-> **Note for macOS users:** with Docker Desktop, turn on host networking
-> (Settings → Resources → Network → *Enable host networking*). The units talk to each
-> other over `localhost`, and `--containerized` runs rely on it.
-
 ## Installation
 
 Create and activate the project environment:
