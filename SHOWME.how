@@ -37,7 +37,7 @@ workflow {
 
 process LHS {
 
-    container "file://$moduleDir/lhs/lhs.sif"
+    container 'ghcr.io/thealanjason/bpc_massflow/lhs:latest'
     publishDir "$moduleDir/outputs", mode: 'copy'
     
 
@@ -76,7 +76,7 @@ process LHS {
         """ 
 }
 process FORWARD_MODEL {
-    container "file://$moduleDir/forward_model/forward_model.sif"
+    container 'ghcr.io/thealanjason/bpc_massflow/forward_model:latest'
     publishDir "$moduleDir/outputs", mode: 'copy'
 
     
@@ -134,7 +134,7 @@ process FORWARD_MODEL {
         """
 }
 process TRAIN_SURROGATE {
-    container "file://$moduleDir/surrogate/surrogate.sif"
+    container 'ghcr.io/thealanjason/bpc_massflow/surrogate:latest'
     publishDir "$moduleDir/outputs", mode: 'copy'
 
     input:
@@ -182,7 +182,7 @@ process UQ_STATUS {
     path "status_info", emit: pipe
 }
 process SERVE_SURROGATE {
-    conda "$moduleDir/surrogate/environment.yml"
+    container 'ghcr.io/thealanjason/bpc_massflow/surrogate:latest'
     cache 'lenient'
 
     input:
@@ -219,7 +219,7 @@ process SERVE_SURROGATE {
     """
 }
 process MCMC {
-    conda "$moduleDir/mcmc/environment.yml"
+    container 'ghcr.io/thealanjason/bpc_massflow/mcmc:latest'
     cache 'lenient'
     publishDir "$moduleDir/outputs", mode: 'copy'
     

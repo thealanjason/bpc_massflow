@@ -6,8 +6,7 @@ name: Conda recipes (locks + images)
 #   2. build-images: from the freshly-updated tree, build & push each module's
 #      image to GHCR (:latest + :sha) for --containerized runs.
 # Chained in one run because a GITHUB_TOKEN push can't trigger a second workflow.
-# New modules (any dir with environment.yml) are picked up automatically;
-# lhs (Julia) has its own image workflow.
+# New modules (any dir with environment.yml or, for Julia, Project.toml) are picked up automatically.
 
 on:
   push:
@@ -54,8 +53,8 @@ jobs:
       - name: Discover modules
         id: discover
         run: |
-          mods=$(find . -mindepth 2 -maxdepth 2 -name environment.yml -printf '%h\n' \
-                 | sed 's|^\./||' | sort | jq -R . | jq -cs .)
+          mods=$(find . -mindepth 2 -maxdepth 2 \( -name environment.yml -o -name Project.toml \) -printf '%h\n' \
+                 | sed 's|^\./||' | sort -u | jq -R . | jq -cs .)
           echo "modules=$mods" >> "$GITHUB_OUTPUT"
 
       - name: Commit and push
