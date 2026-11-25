@@ -14,6 +14,8 @@ on:
     branches: [main]
     paths:
       - '**/environment.yml'
+      - '**/Project.toml'
+      - '**/Dockerfile'
       - '.github/scripts/update-locks.sh'
       - '.github/templates/**'
       - '.github/workflows/conda-recipes.yml'
@@ -45,6 +47,10 @@ jobs:
         shell: bash -el {0}
         run: bash .github/scripts/update-locks.sh
 
+      # Julia modules: Dockerfile from template + manifest, both from Project.toml's julia version.
+      - name: Lock Julia modules
+        run: bash .github/scripts/update-julia.sh
+
       - name: Discover modules
         id: discover
         run: |
@@ -57,7 +63,7 @@ jobs:
         run: |
           git config user.name  "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add -A '**/lockfile/*.lock' '**/Dockerfile'
+          git add -A '**/lockfile/*.lock' '**/Dockerfile' '**/Manifest.toml'
           if git diff --staged --quiet; then
             echo "changed=false" >> "$GITHUB_OUTPUT"
           else
