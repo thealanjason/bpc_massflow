@@ -73,8 +73,6 @@ jobs:
 
   build-images:
     needs: update-recipes
-    # Rebuild when recipes changed, or on a manual run (e.g. base-image bump).
-    if: ${{ needs.update-recipes.outputs.changed == 'true' || github.event_name == 'workflow_dispatch' }}
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
