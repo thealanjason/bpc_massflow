@@ -14,4 +14,9 @@ RUN apt-get update \
     && chmod 0755 /opt/@UNIT@ /usr/local/share/.julia /tmp/logs
 
 COPY Project.toml Manifest.toml /opt/@UNIT@/
-RUN julia -e 'using Pkg; Pkg.instantiate(); Pkg.precompile()'
+# Precompile for a portable CPU target. The default is the build machine's own CPU,
+# which other CPUs reject, so Julia re-precompiles at every container start.
+RUN case "$(uname -m)" in \
+      x86_64) export JULIA_CPU_TARGET="generic;sandybridge,-xsaveopt,clone_all;haswell,-rdrnd,base(1)" ;; \
+    esac \
+    && julia -e 'using Pkg; Pkg.instantiate(); Pkg.precompile()'
