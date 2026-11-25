@@ -70,7 +70,7 @@ if __name__ == "__main__":
 
     trace, sampler, full_chain = compute_mcmc(log_posterior=log_posterior_Umax, data=data, model=model)
     # Post-burn-in samples as ArviZ InferenceData (NetCDF), as in bpc_hemolysis
-    idata = az.from_emcee(sampler, var_names=["A", "B"], blob_names=None)
+    idata = az.from_emcee(sampler, var_names=["A", "B"])
     idata = idata.sel(draw=slice(500, None))  # drop burn-in (matches compute_mcmc)
     idata.to_netcdf("mcmc_idata.nc")
 

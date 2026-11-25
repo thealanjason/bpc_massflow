@@ -20,7 +20,7 @@ workflow {
         ) 
     
     SERVE_SURROGATE ( 
-        UQ_STATUS.out.pipe,
+        UQ_STATUS.out.comm,
         file("$moduleDir/surrogate/serve_surrogate.R"),
         TRAIN_SURROGATE.out.model,
         "ScalarGP_Umax",
@@ -28,7 +28,7 @@ workflow {
         )
 
     MCMC ( 
-        UQ_STATUS.out.pipe,
+        UQ_STATUS.out.comm,
         file("$moduleDir/mcmc/MCMC_um.py"),
         "ScalarGP_Umax",
         file("$moduleDir/mcmc/calibration_data.csv")
@@ -175,18 +175,18 @@ process UQ_STATUS {
 
     script:
     """
-    mkfifo status_info
+    mkdir -m 777 comm
     """
 
     output:
-    path "status_info", emit: pipe
+    path "comm", emit: comm
 }
 process SERVE_SURROGATE {
     conda "$moduleDir/surrogate/environment.yml"
     cache 'lenient'
 
     input:
-    path status
+    path comm
     path script
     path model
     val model_name
@@ -200,21 +200,22 @@ process SERVE_SURROGATE {
     # Start the model server in the background
     Rscript ${script} ${model} ${model_name}  & 
     PID=\$!
+    trap 'kill \$PID 2>/dev/null || true; rm -f $comm/READY $comm/DONE' EXIT INT TERM
     echo \$PID
     # Wait for the model server to start
     while ! (echo > /dev/tcp/localhost/${port_number}) 2>/dev/null; do
         sleep 1
     done
-    echo "model_server_up" > $status
+    echo "model_server_up" > $comm/READY
     echo "Model server is up and running on port ${port_number}"
 
-    # Monitor the status 
-    cat $status  &
-    STATUS_PID=\$!
-    wait \$STATUS_PID
+    # Wait for MCMC to signal completion
+    until [ -e $comm/DONE ]; do
+        sleep 1
+    done
 
     # Stop the model server when the signal is received
-    kill \$PID
+    kill \$PID 2>/dev/null || true
     
     """
 }
@@ -224,7 +225,7 @@ process MCMC {
     publishDir "$moduleDir/outputs", mode: 'copy'
     
     input:
-        path status
+        path comm
         path script
         val model_name
         path calibration_data
@@ -232,11 +233,13 @@ process MCMC {
 
     script:
         """
-        cat $status # blocked until the model server is up
+        until [ -e $comm/READY ]; do
+            sleep 1
+        done # blocked until the model server is up
 
         python ${script} ${calibration_data} ${model_name}
         
-        echo "mcmc_done" > $status # signal to stop the model server
+        touch $comm/DONE # signal to stop the model server
         """
 
     output:

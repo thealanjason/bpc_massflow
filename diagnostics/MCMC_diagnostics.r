@@ -5,10 +5,10 @@ az <- import("arviz")
 
 # Read the MCMC output (NetCDF InferenceData written by the mcmc unit)
 idata <- az$from_netcdf("mcmc_idata.nc")
-post <- idata$posterior$to_array()$values  # dims: (parameter, chain, draw)
+post <- idata$posterior$to_dataset()$to_array()$values  # dims: (parameter, draw, chain)
 
 # Chained samples as (draw, chain, parameter)
-chained_samples <- aperm(post, c(3, 2, 1))
+chained_samples <- aperm(post, c(2, 3, 1))
 
 # Flatten all chains into one (draw * chain, parameter) matrix
 samples <- matrix(chained_samples, ncol = dim(chained_samples)[3])
